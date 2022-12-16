@@ -7,3 +7,4 @@
  1) http://www-personal.umich.edu/~mejn/computational-physics/dcst.py
  2) https://numpy.org/doc/stable/reference/routines.fft.html
  3) https://pyfftw.readthedocs.io/en/latest/
+ 4) https://github.com/anandogc/fftk

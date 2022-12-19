@@ -25,32 +25,29 @@ def Get_kz(lz):
 
 ## ref: http://www-personal.umich.edu/~mejn/computational-physics/dcst.py
 ######################################################################
-# 1D DST Type-I
+# 1D DCT Type-I
 
-def dst(y):
+def dct(y):
     N = len(y)
-    y2 = np.zeros(2*N,dtype=float)
-    y2[0] = y2[N] = 0.0
-    y2[1:N] = y[1:]
-    y2[:N:-1] = -y[1:]
-    a = -np.imag(rfft(y2))[:N]
-    a[0] = 0.0
+    y2 = np.zeros(2*N, dtype=float)
+    y2[:N] = y[:]
+    y2[N:] = y[::-1]
 
-    return a
-
+    c = rfft(y2)
+    phi = np.exp(-1j*np.pi*np.arange(N)/(2*N))
+    return np.real(phi*c[:N])
 
 ######################################################################
-# 1D inverse DST Type-I
+# 1D inverse DCT Type-I
 
-def idst(a):
+def idct(a):
     N = len(a)
     c = np.zeros(N+1,dtype=complex)
-    c[0] = c[N] = 0.0
-    c[1:N] = -1j*a[1:]
-    y = irfft(c)[:N]
-    y[0] = 0.0
 
-    return y
+    phi = np.exp(1j*np.pi*np.arange(N)/(2*N))
+    c[:N] = phi*a
+    c[N] = 0.0
+    return irfft(c)[:N]
 
 
 ######################################################################
@@ -58,7 +55,7 @@ def idst(a):
 ######################################################################
 # 2D DST
 
-def dst2(y):
+def dct2(y):
     M = y.shape[0]
     N = y.shape[1]
     P = y.shape[2]
@@ -67,7 +64,7 @@ def dst2(y):
     
     for j in range(N):
     	for k in range(P):
-        	a[:,j,k] = dst(y[:,j,k])
+        	a[:,j,k] = dct(y[:,j,k])
     
     return a
 
@@ -75,7 +72,7 @@ def dst2(y):
 ######################################################################
 # 2D inverse DST
 
-def idst2(a):
+def idct2(a):
     M = a.shape[0]
     N = a.shape[1]
     P = a.shape[2]
@@ -84,7 +81,7 @@ def idst2(a):
     
     for j in range(N):
     	for k in range(P):
-        	y[:,j,k] = idst(a[:,j,k])
+        	y[:,j,k] = idct(a[:,j,k])
     
     return y
 
@@ -104,7 +101,7 @@ f = np.zeros((Nx, Ny, Nz))
 # example function
 def init_cond(f):
    
-   x = np.linspace(0,Nx-1, Nx)
+   x = np.linspace(0,Nx-1, Nx)+0.5
    y = np.linspace(0,Ny-1, Ny)
    z = np.linspace(0, Nz-1, Nz)
 
@@ -118,7 +115,7 @@ def init_cond(f):
    k5 = 6
 
    
-   f = 8*np.sin(k0*x_mesh*dx)*np.sin(k1*y_mesh*dy)*np.sin(k2*z_mesh*dz) + 8*np.sin(k3*x_mesh*dx)*np.sin(k4*y_mesh*dy)*np.sin(k5*z_mesh*dz) 
+   f = 8*np.cos(k0*x_mesh*dx)*np.cos(k1*y_mesh*dy)*np.cos(k2*z_mesh*dz) + 8*np.cos(k3*x_mesh*dx)*np.cos(k4*y_mesh*dy)*np.cos(k5*z_mesh*dz)
    
    return f
 
@@ -131,12 +128,12 @@ f_copy[:,:,:] = f[:,:,:]
 
 
 ## forward transform-- 
-temp =  dst2(f)
+temp =  dct2(f)
 fk = rfft2(temp, axes=(1, 2))/(Nx*Ny*Nz)
 
 ## inverse transform --
 temp =  irfft2(fk, axes=(1, 2))
-f = idst2(temp)*(Nx*Ny*Nz)
+f = idct2(temp)*(Nx*Ny*Nz)
 
 
 print (np.max(np.abs(f-f_copy)))
